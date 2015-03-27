@@ -7,84 +7,117 @@ from glob import iglob
 # Use this bated VV
 class Profile(object):
 
+	def __init__(self, profile_name = None, search=False):
+		if profile_name:
+			if search:
+				search = ('./' if isinstance(search, bool) else search)
+				self.lookforuser(profile_name,search)
 
-	def __init__(this, name, directory=None, username = None, oauth = None):
-		this.nameDict = {}
-		if username and oauth:
-			this.makeDict(username, oauth)
-			this.export((directory if directory else './')+name)
-			return
-		this.loadFile(name, directory)
+			else:
+				self.extract(profile_name)
 
-	def loadFile(this, name, dirCheck=None):
-		if not dirCheck:
-			#load file name via importer
-			try:
-				this.get(name)
-				this.fromRaw()
+	@property
+	def name(self):
+		"""'name' property"""
+		return self.username
+		
+	@name.setter
+	def name(self, value):
+		self.username = value
 
-				return
-			except Exception as e:
-				dirCheck = './'
+	@name.deleter
+	def name(self):
+		del self.username
 
+	@property
+	def password(self):
+		"""'password' property"""
+		return self.key
 
-		if dirCheck:
-			#find file name based on username
-			absPath = os.getcwd()
-			os.chdir(dirCheck)
-			for filename in iglob("*.json"):
-				print filename
-				this.get(filename)
-				this.fromRaw()
-				if this.raw["profile"]["twitch_username"] == name:
-					print "Name found:", this.raw["profile"]["twitch_username"]
+	@password.setter
+	def password(self, value):
+		self.key = value
 
-					os.chdir(absPath)
+	@password.deleter
+	def password(self):
+		del self.key
+
+	# @property
+	# def profile(self):
+	# 	"""'profile' property"""
+	# 	return self.figure
+
+	# @profile.setter
+	# def profile(self, value):
+	# 	print "Profile is now",value
+	# 	self.figure = value
+
+	# @profile.deleter
+	# def profile(self):
+	# 	del self.figure
+
+	def export(self, name = None):
+		filename = (name if name else self.username)+'.json'
+		with open(filename, 'w') as fout:
+			fout.write(json.dumps({"profile":self.__dict__}))
+
+	def extract(self, name):
+		filename = (name if name else self.username)+'.json'
+		with open(filename) as fin:
+			self.__dict__ = json.load(fin)["profile"]
+
+	def lookforuser(self, username, path = './'):
+		returnpath = os.getcwd()
+		os.chdir(path)
+
+		for filename in iglob("*.json"):
+			print filename
+			print "="*80
+
+			with open(filename) as fin:
+				jsondata = json.load(fin)
+				if jsondata["profile"]["username"] == username:
+					self.__dict__ = jsondata["profile"]
+					os.chdir(returnpath)
 					return
 
-				else:
-					print "Found non matching name:", this.raw["profile"]["twitch_username"]
-					this.raw = None
+		os.chdir(returnpath)
+		raise NameError("User profile '{}' not found in '{}'".format(username, os.path.abspath(path)))
 
 
-			os.chdir(absPath)
-			return
+	# 	if dirCheck:
+	# 		#find file name based on username
+	# 		absPath = os.getcwd()
+	# 		os.chdir(dirCheck)
+	# 		for filename in iglob("*.json"):
+	# 			print filename
+	# 			this.get(filename)
+	# 			this.fromRaw()
+	# 			if this.raw["profile"]["twitch_username"] == name:
+	# 				print "Name found:", this.raw["profile"]["twitch_username"]
 
-	def makeFile(this, filename=None):
-		this.export((this.name+'.json' if filename == None else filename))
+	# 				os.chdir(absPath)
+	# 				return
 
-	def get(this, filename):
-		with open(filename) as fin:
-			this.raw = json.load(fin)
-
-	def export(this, filename):
-		with open(filename+'.json', 'w') as fout:
-			fout.write(json.dumps({"profile":this.nameDict}))
-
-	def makeDict(this, name=None, oauth=None):
-		if name:
-			this.nameDict["twitch_username"] = name
-			
-		else:
-			this.nameDict["twitch_username"] = this.name
-
-		if oauth:
-			this.nameDict["oauth"] = oauth
-			
-		else:
-			this.nameDict["oauth"] = this.oauth
-
-		if name or oauth:
-			this.syncDict()
+	# 			else:
+	# 				print "Found non matching name:", this.raw["profile"]["twitch_username"]
+	# 				this.raw = None
 
 
-	def syncDict(this):
-		this.name = this.nameDict["twitch_username"]
-		this.oauth = this.nameDict["oauth"]
+	# 		os.chdir(absPath)
+	# 		return
 
-	def fromRaw(this):
-		namespace = this.raw["profile"]
-		this.name = namespace["twitch_username"]
-		this.oauth = namespace["oauth"]
 
-		this.makeDict()
+
+
+if __name__ == '__main__':
+	t = Profile()
+	t.name = "Test_user"
+	t.password = "Weak ass pass"
+ 	t.export()
+ 	print t.__dict__
+
+ 	del t
+
+ 	m = Profile("Test_user")
+ 	print m.name, m.password, m.__dict__
