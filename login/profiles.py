@@ -1,20 +1,24 @@
 
 import json
 import os
-import sys
 from glob import iglob
 #
 # Use this bated VV
 class Profile(object):
 
-	def __init__(self, profile_name = None, search=False):
-		if profile_name:
+	def __init__(self, username = None, search=False, oauth = None):
+		if oauth:
+			self.name = username
+			self.password = oauth
+			
+		elif username:
 			if search:
 				search = ('./' if isinstance(search, bool) else search)
-				self.lookforuser(profile_name,search)
+				self.lookforuser(username, search)
 
 			else:
-				self.extract(profile_name)
+				self.extract(username)
+
 
 	@property
 	def name(self):
@@ -25,9 +29,9 @@ class Profile(object):
 	def name(self, value):
 		self.username = value
 
-	@name.deleter
-	def name(self):
-		del self.username
+	# @name.deleter
+	# def name(self):
+	# 	del self.username
 
 	@property
 	def password(self):
@@ -38,9 +42,9 @@ class Profile(object):
 	def password(self, value):
 		self.key = value
 
-	@password.deleter
-	def password(self):
-		del self.key
+	# @password.deleter
+	# def password(self):
+	# 	del self.key
 
 	# @property
 	# def profile(self):
