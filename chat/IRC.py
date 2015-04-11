@@ -2,12 +2,14 @@
 
 import socket
 # import thread
+import time
 from sys import path 
 import os
 
-
+from Channel import Channel
+from Message import Message
 import twitchtools.login
-
+import twitchtools.utils
 
 
 
@@ -16,12 +18,14 @@ class IRC(object):
     """
     IRC((Address, port), [(user, pass), (Profile object)])
     """
-    user = None
-
-    channels = {}
 
     def __init__(self, AP = None, USER = None):
+        self.channels = {}
+        self.saveQueue = {}
+        self.user = None
+        self.IRCNAME = None
         self.link = socket.socket();
+        self.term = twitchtools.utils.Printer("IRC.{}".format(USER.name))
 
         if IRC:
             self.server(AP)
@@ -33,7 +37,22 @@ class IRC(object):
             self.connect()
             self.login()
 
+    def __enter__(self):
+
+        return self
+
+    def __exit__(self, typeof, value, traceback):
+        if typeof or value or traceback:
+            self.term(typeof, value, traceback)
+        else:
+            self.term("Closed connection successfully...")
+        self.disconnect()
+
+    def StopMessage(self, COMMAND, USERS):
+        pass
+
     def server(self, AP):
+
         self.IRCNAME = AP
 
     def credentials(self, USER):
@@ -45,15 +64,13 @@ class IRC(object):
 
         else:
             raise TypeError("User is not of correct type")
-
-        
-
+   
     def login(self):
         self.password()
         self.nick()
 
     def connect(self):
-        print "Attempting to connect to :",' @ '.join(map(str,self.IRCNAME)),'\n','...'*3
+        self.term("Attempting to connect to :",' @ '.join(map(str,self.IRCNAME)),'\n','...'*3)
         self.link.connect(self.IRCNAME)
         
     def disconnect(self):
@@ -61,58 +78,97 @@ class IRC(object):
         self.link.close()
 
     def raw(self, message):
-        print "=>",message
+        self.term("<-",message)
         self.link.sendall("{}\r\n".format(message))
 
     def capibilities(self, req):
-        self.raw("CAP REQ :{}".format(req))
+
+        self.raw("CAP REQ :twitch.tv/{}".format(req))
 
     def nick(self):
+
         self.raw("NICK {}".format(self.user.name))
         
     def password(self):
+
         self.raw("PASS {}".format(self.user.password))
 
-    def join(self, channel):
-        #If channel containsa  '#' already get rid if it
-        self.raw("JOIN #{}".format(channel.lower()))
-        #Create channel object and set up redirection to that object storage
-        #Save channel object to local hash
-        #Return channel object to user
+    def join(self, channel, limiter=0.5, size=10):
+        channels = channel.split(",")
+
+        if len(channels) < size:
+            limiter = 0
+
+        for channel in channels:
+            #If channel contains a  '#' already get rid if it
+            channel = channel.strip('# ')
+
+            self.raw("JOIN #{}".format(channel.lower()))
+
+            time.sleep(limiter)
+            #pretty print join time ETA? (ref simple_incoming_twitch_irc.py)
+
+            self.channels[channel] = Channel(self, channel)
+
+            #Create channel object and set up redirection to that object storage
+            #Save channel object to local hash
+            #Return channel object to user
+
+        if len(channels) == 1:
+            return self.channels[channels[0]]
 
     def part(self, channel):
-        self.raw("PART {}".format(channel))
+        try:
+            self.saveQueue[channel] = self.channels.pop(channel, None)
+            self.raw("PART {}".format(channel))
+        except KeyError:
+            pass
 
     def pm(self, CHANNELOBJ, message):
-        self.raw("PRIVMSG #{} :{}".format(CHANNELOBJ.channel, message))
 
-    def read(self, output = False, amount = 512, timeout = -1):
-        self.link.settimeout((None if timeout < 0 else float(timeout)))
+        self.raw("PRIVMSG #{} :{}".format(CHANNELOBJ.name, message))
+
+    def read(self, output = False, amount = 512, timeout = 0.1):
+        stimeout = self.link.gettimeout()
+        self.link.settimeout((timeout if timeout < 0 else float(timeout)))
+
         try:
-            incoming = self.link.recv(amount)
+            incoming = [i for i in self.readfile()]
         except socket.timeout as e:
-            print e
+            self.term(e)
         finally:
             pass
 
-        if output:
-            print incoming
+        for message in incoming:
+            if output:
+                self.term(message)
 
-        if output == "file":
-            with open("outfile",'a') as fout:
-                fout.write(incoming)
+            if output.lower() == "file":
+                with open("outfile",'a') as fout:
+                    fout.write(message)
 
-        self.parse(incoming)
+            self.distrubute(message)
 
-    def parse(self, incoming):
-        pass
-        """
-        for i in messages:
-            self.distrubute(i)
-        """
+
+        self.link.settimeout(stimeout)
+
+    def readfile(self, buffsize = 512, timeout=-1, raw=False, lines=False):
+        for i in self.link.makefile():
+            if i.startswith("PING"):
+                self.raw(i.replace("PING", "PONG").strip())
+                continue
+
+            yield self.distrubute(Message(i))
 
     def distrubute(self, message):
-        pass
+        try: 
+            if message.command in ["PRIVMSG", "CLEARCHAT"]: self.channels[message.channel].RecvMessage(message)
+            
+        except KeyError:
+            pass
+
+
+        return message
         """
         Read channel
         Send to channel
@@ -121,105 +177,25 @@ class IRC(object):
 
         """
 
-class Channel(object):
-    """
-    Channel(IRCobject, name)
-    """
+    def register(self, Ops):
+        if issubclass(Ops, twitchtools.utils.Operator):
+            Channel.Operators.append(Ops)
 
-    users = {}
+        else:
+            raise TypeError("'{}' is not of type '{}'".format(Ops, twitchtools.utils.Operator))
 
-    def __init__(self, name):
-        super(Channel, self).__init__()
-        self.name = name
-    
-    def enter_message(self, message):
-        pass
-        
-    def enter_user(self, username):
-        self.users[username] = User(username)
 
-class User(object):
-    """
+    def auto(self, *args, **kwargs):
+        self.read(timeout=500)
 
-    """
-    messages = []
-    def __init__(self, name):
-        pass
-
-    def enter_message(self, message):
-        pass
 
 if __name__ == '__main__':
-    m = IRC(("irc.twitch.tv", 6667), ("justinfan007", "blah"))
+    m = IRC(("irc.twitch.tv", 6667), twitchtools.login.Profile("bomb_mask", "C:/Users/bombmask/Source/garden/twitch"))
     m.read(True, timeout = 10)
     m.capibilities("twitch.tv/tags")
     m.read()
+    m.pm("snarfybobo",".mods")
+    m.read(True)
     
     m.disconnect()
     k = raw_input("press enter to exit...")
-
-# class IRC:
-#     def __init__(self, host, port):
-#         self.host = host
-#         self.port = port
-
-#     def sock_init(self):
-#         try:
-#             self.irc = socket.socket()
-#             self.irc.settimeout(600)
-#         except Exception as e:
-#             print("Failed to create socket.")
-#             raise
-
-#     def sock_connect(self):
-#         try:
-#             self.irc.connect((self.host, self.port))
-#         except Exception as e:
-#             print("Failed to connect to the host.")
-#             raise
-
-#     def send_raw(self, msg):
-#         self.irc.sendall("{}\r\n".format(msg).encode("utf-8"))
-
-#     def send_pass(self, password):
-#         self.send_raw("PASS {}".format(password))
-
-#     def send_nick(self, nick):
-#         self.send_raw("NICK {}".format(nick))
-
-#     def send_join(self, channel):
-#         self.send_raw("JOIN #{}".format(channel))
-
-#     def send_pm(self, channel, msg):
-#         self.send_raw("PRIVMSG #{} :{}".format(channel, msg))
-
-#     def sock_raw_recv(self, amount):
-#         msg = self.irc.recv(amount)
-#         if msg:
-#             return msg
-#         elif msg == "":
-#             raise ValueError
-#         else:
-#             return None
-
-#     def sock_recv(self, amount):
-#         msg = self.sock_raw_recv(amount)
-#         try:
-#             msg = msg.decode("utf-8")
-#         except AttributeError as e:
-#             return None
-
-#         if msg.startswith("PING"):
-#             self.send_raw(msg.replace("PING", "PONG"))
-#         return msg
-
-#     def sock_disconnect(self):
-#         try:
-#             self.send_raw("QUIT")
-#         except Exception as e:
-#             pass
-#         finally:
-#             self.irc.close()
-
-#     def destroy_socket(self):
-#         del self.irc

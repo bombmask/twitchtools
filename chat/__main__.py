@@ -1,3 +1,3 @@
-from IRC import *
-from channel import *
+# from IRC import *
+# from channel import *
 print("Loaded chat")
