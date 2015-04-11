@@ -70,8 +70,9 @@ class IRC(object):
         self.nick()
 
     def connect(self):
-        self.term("Attempting to connect to :",' @ '.join(map(str,self.IRCNAME)),'\n','...'*3)
+        self.term("Attempting to connect to :",' @ '.join(map(str,self.IRCNAME)))
         self.link.connect(self.IRCNAME)
+        self.term("Connection successfully created...")
         
     def disconnect(self):
         self.raw("QUIT")
