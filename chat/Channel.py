@@ -25,6 +25,7 @@ class Channel(object):
         self.owner = name.strip("#").strip()
         self.AttachedCommands = []
         self.Operators = []
+        self.OperatorInstances = {}
         self.term = twitchtools.utils.Printer("Channel.{}".format(self.name))
 
     
@@ -41,7 +42,12 @@ class Channel(object):
         #self.term(self.Operators+Channel.Operators)
         for op in self.Operators + Channel.Operators:
             if op.poll(self, message):
-                tmp = op().execute(self, message)
+                try:
+                    self.OperatorInstances[op].execute(self, message)
+                except KeyError, e:
+                    self.OperatorInstances[op] = op()
+                    self.OperatorInstances[op].execute(self, message)
+                    
 
 
     def AddOperator(self, ops):
@@ -55,7 +61,7 @@ class Channel(object):
     def createUser(self, username):
         self.users[username] = User(self, username)
 
-    def sendMessage(self, message):
+    def pm(self, message):
 
         self.ircParent.pm(self, message)
 # import time

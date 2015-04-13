@@ -5,13 +5,21 @@ class Printer(object):
     ON = True
 
     def __init__(self, prefix):
-        print
+        self.pref = prefix
         self.prefix = "[ " + str(prefix) + " ]"
 
     def __call__(self, *args, **kwargs):
         if Printer.level == "DEBUG":
             self.write(args, kwargs)
-        
+    
+    def error(self, *args, **kwargs):
+        cState = Printer.ON
+        Printer.ON = True
+        self.write(args, kwargs)
+        Printer.ON = cState
+
+    def addSpecial(self, special):
+        self.prefix = "[ " + self.pref + "." + special + " ]"
 
     def user(self, *args, **kwargs):
         if Printer.level == "NOMINAL":
@@ -22,7 +30,7 @@ class Printer(object):
 
 
     def write(self, args, kwargs):
-        if Printer.ON:
+        if Printer.ON or True:
             print self.format(args, kwargs)
 
 

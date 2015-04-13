@@ -1,7 +1,7 @@
 #! /usr/bin/env python2.7
 
 import socket
-# import thread
+import threading
 import time
 from sys import path 
 import os
@@ -102,7 +102,7 @@ class IRC(object):
 
         for channel in channels:
             #If channel contains a  '#' already get rid if it
-            channel = channel.strip('# ')
+            channel = channel.strip('#').strip(' ').lower()
 
             self.raw("JOIN #{}".format(channel.lower()))
 
@@ -116,27 +116,33 @@ class IRC(object):
             #Return channel object to user
 
         if len(channels) == 1:
-            return self.channels[channels[0]]
+            return self.getChannel(channels[0])
 
     def part(self, channel):
+        channel = channel.lower()
         try:
             self.saveQueue[channel] = self.channels.pop(channel, None)
             self.raw("PART {}".format(channel))
         except KeyError:
             pass
 
+    def getChannel(self, channel):
+        channel = channel.lower()
+        return self.channels.get(channel, None)
+
     def pm(self, CHANNELOBJ, message):
 
         self.raw("PRIVMSG #{} :{}".format(CHANNELOBJ.name, message))
 
-    def read(self, output = False, amount = 512, timeout = 0.1):
+    def read(self, output = True, amount = 512, timeout = 0.5):
         stimeout = self.link.gettimeout()
         self.link.settimeout((timeout if timeout < 0 else float(timeout)))
 
         try:
             incoming = [i for i in self.readfile()]
         except socket.timeout as e:
-            self.term(e)
+            self.term.error(e)
+            return 
         finally:
             pass
 
