@@ -40,7 +40,7 @@ class Channel(object):
             self.term("Creating User:", message.user)
 
         #self.term(self.Operators+Channel.Operators)
-        for op in self.Operators + Channel.Operators:
+        for op in self.Operators + self.ircParent.Operators:
             if op.poll(self, message):
                 try:
                     self.OperatorInstances[op].execute(self, message)

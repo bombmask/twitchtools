@@ -22,6 +22,7 @@ class IRC(object):
     def __init__(self, AP = None, USER = None):
         self.channels = {}
         self.saveQueue = {}
+        self.Operators = []
         self.user = None
         self.IRCNAME = None
         self.link = socket.socket();
@@ -186,7 +187,7 @@ class IRC(object):
 
     def register(self, Ops):
         if issubclass(Ops, twitchtools.utils.Operator):
-            Channel.Operators.append(Ops)
+            self.Operators.append(Ops)
 
         else:
             raise TypeError("'{}' is not of type '{}'".format(Ops, twitchtools.utils.Operator))
