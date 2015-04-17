@@ -36,7 +36,12 @@ class Profile(object):
 
     @password.setter
     def password(self, value):
-        self.key = value
+        if isinstance(value, str):
+            if not value.startswith("oauth:"): value = "oauth:"+value
+            
+            self.key = value
+        else:
+            raise TypeError("Value is not string")
 
 
     def export(self, name = None):
