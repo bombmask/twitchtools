@@ -61,9 +61,9 @@ class Channel(object):
     def createUser(self, username):
         self.users[username] = User(self, username)
 
-    def pm(self, message):
+    def pm(self, *message_parts):
 
-        self.ircParent.pm(self, message)
+        self.ircParent.pm(self, " ".join(message_parts))
 # import time
 # from IRC import IRC
 

@@ -42,7 +42,7 @@ class Message(object):
 
 
     def __str__(self):
-        if False:
+        if self.tags:
             tagsString = ""
             for k,v in self.tags.items():
                 tagsString += k+"="+v+", "
