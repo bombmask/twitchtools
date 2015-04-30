@@ -120,10 +120,10 @@ class IRC(object):
             return self.getChannel(channels[0])
 
     def part(self, channel):
-        channel = channel.lower()
+        channel = channel.strip('#').strip(' ').lower()
         try:
             self.saveQueue[channel] = self.channels.pop(channel, None)
-            self.raw("PART {}".format(channel))
+            self.raw("PART #{}".format(channel))
         except KeyError:
             pass
 
