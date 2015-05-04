@@ -135,12 +135,12 @@ class IRC(object):
 
         self.raw("PRIVMSG #{} :{}".format(CHANNELOBJ.name, message))
 
-    def read(self, output = True, amount = 512, timeout = 0.5):
+    def read(self, output = True, amount = 256, timeout = 0.5):
         stimeout = self.link.gettimeout()
         self.link.settimeout((timeout if timeout < 0 else float(timeout)))
 
         try:
-            incoming = [i for i in self.readfile()]
+            incoming = [i for i in self.readfile(buffsize=amount)]
         except socket.timeout as e:
             self.term.error(e)
             return 
@@ -160,8 +160,8 @@ class IRC(object):
 
         self.link.settimeout(stimeout)
 
-    def readfile(self, buffsize = 512, timeout=-1, raw=False, lines=False):
-        for i in self.link.makefile():
+    def readfile(self, buffsize = 256, timeout=-1, raw=False, lines=False):
+        for i in self.link.makefile(buffsize):
             if i.startswith("PING"):
                 self.raw(i.replace("PING", "PONG").strip())
                 continue
