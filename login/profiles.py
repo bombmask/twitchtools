@@ -10,7 +10,7 @@ class Profile(object):
         if oauth:
             self.name = username
             self.password = oauth
-            
+
         elif username:
             if search:
                 search = (search if isinstance(search, str) else "./")
@@ -24,7 +24,7 @@ class Profile(object):
     def name(self):
         """'name' property"""
         return self.username
-        
+
     @name.setter
     def name(self, value):
         self.username = value
@@ -38,7 +38,7 @@ class Profile(object):
     def password(self, value):
         if isinstance(value, str):
             if not value.startswith("oauth:"): value = "oauth:"+value
-            
+
             self.key = value
         else:
             raise TypeError("Value is not string")
@@ -59,8 +59,8 @@ class Profile(object):
         os.chdir(path)
 
         for filename in iglob("*.json"):
-            print filename
-            print "="*80
+            print(filename)
+            print("="*80)
 
             with open(filename) as fin:
                 jsondata = json.load(fin)
@@ -78,9 +78,9 @@ if __name__ == '__main__':
     t.name = "Test_user"
     t.password = "Weak ass pass"
     t.export()
-    print t.__dict__
+    print(t.__dict__)
 
     del t
 
     m = Profile("Test_user")
-    print m.name, m.password, m.__dict__
+    print(m.name, m.password, m.__dict__)

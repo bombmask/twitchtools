@@ -11,7 +11,7 @@ class Printer(object):
     def __call__(self, *args, **kwargs):
         if Printer.level == "DEBUG":
             self.write(args, kwargs)
-    
+
     def error(self, *args, **kwargs):
         cState = Printer.ON
         Printer.ON = True
@@ -31,10 +31,10 @@ class Printer(object):
 
     def write(self, args, kwargs):
         if Printer.ON or True:
-            print self.format(args, kwargs)
+            print(self.format(args, kwargs))
 
 
-    @property 
+    @property
     @classmethod
     def level(cls):
         try:

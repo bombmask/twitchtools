@@ -3,10 +3,10 @@
 import socket
 # import thread
 import time
-from sys import path 
+from sys import path
 import os
 
-from User import User
+from .User import User
 import twitchtools.login
 import twitchtools.utils
 
@@ -28,7 +28,7 @@ class Channel(object):
         self.OperatorInstances = {}
         self.term = twitchtools.utils.Printer("Channel.{}".format(self.name))
 
-    
+
     def RecvMessage(self, message):
         try:
             self.users[message.user].addMessage(message)
@@ -44,10 +44,10 @@ class Channel(object):
             if op.poll(self, message):
                 try:
                     self.OperatorInstances[op].execute(self, message)
-                except KeyError, e:
+                except KeyError as e:
                     self.OperatorInstances[op] = op()
                     self.OperatorInstances[op].execute(self, message)
-                    
+
 
 
     def AddOperator(self, ops):

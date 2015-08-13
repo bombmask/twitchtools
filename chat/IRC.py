@@ -3,11 +3,11 @@
 import socket
 import threading
 import time
-from sys import path 
+from sys import path
 import os
 
-from Channel import Channel
-from Message import Message
+from .Channel import Channel
+from .Message import Message
 import twitchtools.login
 import twitchtools.utils
 
@@ -65,7 +65,7 @@ class IRC(object):
 
         else:
             raise TypeError("User is not of correct type")
-   
+
     def login(self):
         self.password()
         self.nick()
@@ -74,14 +74,14 @@ class IRC(object):
         self.term("Attempting to connect to :",' @ '.join(map(str,self.IRCNAME)))
         self.link.connect(self.IRCNAME)
         self.term("Connection successfully created...")
-        
+
     def disconnect(self):
         self.raw("QUIT")
         self.link.close()
 
     def raw(self, message):
         self.term("<-",message)
-        self.link.sendall("{}\r\n".format(message))
+        self.link.sendall(bytes("{}\r\n".format(message), "UTF-8"))
 
     def capibilities(self, req):
 
@@ -90,7 +90,7 @@ class IRC(object):
     def nick(self):
 
         self.raw("NICK {}".format(self.user.name))
-        
+
     def password(self):
 
         self.raw("PASS {}".format(self.user.password))
@@ -143,7 +143,7 @@ class IRC(object):
             incoming = [i for i in self.readfile(buffsize=amount)]
         except socket.timeout as e:
             self.term.error(e)
-            return 
+            return
         finally:
             pass
 
@@ -161,7 +161,8 @@ class IRC(object):
         self.link.settimeout(stimeout)
 
     def readfile(self, buffsize = 256, timeout=-1, raw=False, lines=False):
-        for i in self.link.makefile(buffsize):
+
+        for i in self.link.makefile(buffering=1, newline="\r\n", encoding="UTF-8", errors="replace"):
             if i.startswith("PING"):
                 self.raw(i.replace("PING", "PONG").strip())
                 continue
@@ -169,9 +170,9 @@ class IRC(object):
             yield self.distrubute(Message(i))
 
     def distrubute(self, message):
-        try: 
+        try:
             if message.command in ["PRIVMSG", "CLEARCHAT"]: self.channels[message.channel].RecvMessage(message)
-            
+
         except KeyError:
             pass
 
@@ -180,7 +181,7 @@ class IRC(object):
         """
         Read channel
         Send to channel
-        else if not channel 
+        else if not channel
         send to global (all?)
 
         """
@@ -204,6 +205,6 @@ if __name__ == '__main__':
     m.read()
     m.pm("snarfybobo",".mods")
     m.read(True)
-    
+
     m.disconnect()
     k = raw_input("press enter to exit...")
