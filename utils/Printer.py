@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+#!join romscout FlareRDB RandomRambo Thenoosh22 HSdogdog IGN LotharHS Draskyl
+
+import codecs
+
 class Printer(object):
 
     LEVELS = {"DEBUG", "NOMINAL", "LOGGING", "NONE"}
@@ -31,7 +36,7 @@ class Printer(object):
 
     def write(self, args, kwargs):
         if Printer.ON or True:
-            print(self.format(args, kwargs))
+            print(codecs.encode(self.format(args, kwargs), "UTF-8", "replace"))
 
 
     @property

@@ -96,7 +96,10 @@ class IRC(object):
         self.raw("PASS {}".format(self.user.password))
 
     def join(self, channel, limiter=0.5, size=10):
-        channels = channel.split(",")
+        if not isinstance(channel, (list, tuple)):
+            channels = channel.split(",")
+        else:
+            channels = channel
 
         if len(channels) < size:
             limiter = 0

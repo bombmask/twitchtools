@@ -1,7 +1,7 @@
 #! /usr/bin/env python2.7
 
 # import socket
-# from sys import path 
+# from sys import path
 # import os
 # import thread
 import time
@@ -10,14 +10,14 @@ import datetime
 
 class Message(object):
     """
-    Message : Prefix command params 
+    Message : Prefix command params
 
     """
 
-    def __init__(self, raw_message):
+    def __init__(self, raw_message, OTIME=None):
         """ Message spec (@<tags> )?:<headers> (:<message>)?<CRLF> """
         self.raw = raw_message
-        self.creation_time = datetime.datetime.now()
+        self.creation_time = (datetime.datetime.now() if OTIME==None else OTIME)
         #.strftime('%Y-%m-%d %H:%M')
         self.__dict__.update({
                 "prefix": "X",
@@ -63,7 +63,7 @@ class Message(object):
 
         #Optional <Message>
         if len(message_split) > 1:
-            # print "[Message]:", "Incoming:", message_string # print "[Message]:", "List:", message_split # print "[Message]:", "RAW:", self.raw # print "[Message]:", "Message:",self.message 
+            # print "[Message]:", "Incoming:", message_string # print "[Message]:", "List:", message_split # print "[Message]:", "RAW:", self.raw # print "[Message]:", "Message:",self.message
             self.message = message_split[-1].strip()
             if "!" in self.prefix: self.user = self.prefix.split("!")[0]
 
@@ -72,7 +72,7 @@ class Message(object):
 
         return
 
-        
+
 
     def ParseMessageTags(self, tagString):
         """ Exepcts "@<Tags>" """
@@ -86,11 +86,11 @@ class Message(object):
             self.tags[tag] = (value[0] if len(value) == 1 else value)
 
 
-    @property 
+    @property
     def channel(self):
         return self.params[0].strip("#")
 
-    @property 
+    @property
     def target(self):
         if self.command == "CLEARCHAT":
             return self.message
