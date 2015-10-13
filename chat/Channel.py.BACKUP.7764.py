@@ -52,13 +52,8 @@ class Channel(object):
 
 
     def AddOperator(self, ops):
-
         if isinstance(ops, twitchtools.utils.Operator):
             self.Operators.append(ops)
-
-            if hasattr(ops, init_on_attach):
-                if ops.init_on_attach == True:
-                    self.OperatorInstances[ops] = op()
 
         else:
             raise TypeError("'{}' is not of type '{}'".format(ops, twitchtools.utils.Operator))
@@ -68,4 +63,50 @@ class Channel(object):
         self.users[username] = User(self, username)
 
     def pm(self, *message_parts):
+<<<<<<< HEAD
+        self.ircParent.pm(self, " ".join(message_parts))
+        
+# import time
+# from IRC import IRC
+
+# class TwitchChannel(IRC):
+
+#     def __init__(self, host, port, speaker_queue, channels):
+#         super().__init__(host, port)
+#         self.running = False
+#         self.channels = channels
+#         self.speaker_queue = speaker_queue
+
+#     def main_connect(self):
+#         self.sock_init()
+#         self.sock_connect()
+#         self.send_pass("bleh")
+#         self.send_nick("justinfan7219")
+#         self.sock_recv(1024)
+#         self.send_raw("CAP REQ :twitch.tv/tags")
+#         self.sock_recv(1024)
+#         for i in self.channels:
+#             self.send_join(i)
+#             time.sleep(1)
+
+#     def main_loop(self):
+#         self.main_connect()
+#         msg = ""
+#         self.running = True
+#         while self.running:
+#             msg += self.sock_recv(2048)
+#             if msg:
+#                 messages = msg.split("\r\n")
+#                 while len(messages) > 1:
+#                     current_msg = messages.pop(0)
+#                     if not current_msg.startswith('@'):
+#                         continue
+#                     c_msg = current_msg.split(' ', 4)
+#                     if c_msg[2] == "PRIVMSG":
+#                         user = c_msg[1].split('!')[0][1:]
+#                         target_channel = c_msg[3]
+#                         self.speaker_queue.put([target_channel, user, "speaking", 1])
+#                 msg = messages[0]
+=======
         self.ircParent.pm(self, " ".join([codecs.decode(part) if isinstance(part, bytes) else part for part in message_parts]))
+>>>>>>> 0d85d98dab4549b1350aa06503eb2f4435f2634e

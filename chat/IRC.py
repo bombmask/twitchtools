@@ -191,6 +191,8 @@ class IRC(object):
 
     def register(self, Ops):
         if issubclass(Ops, twitchtools.utils.Operator):
+            if hasattr(Ops, "ginit"):
+                Ops.ginit()
             self.Operators.append(Ops)
 
         else:

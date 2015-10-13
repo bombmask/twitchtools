@@ -20,3 +20,6 @@ class User(object):
 	def addMessage(self, message):
 		self.term("Appending message:",message.message)
 		self.messages.append(message)
+
+	def whisper(self, message):
+		self.channelParent.pm("/w {user} {message}".format(user=self.name, message=message.strip("/me")))

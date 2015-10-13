@@ -52,13 +52,8 @@ class Channel(object):
 
 
     def AddOperator(self, ops):
-
         if isinstance(ops, twitchtools.utils.Operator):
             self.Operators.append(ops)
-
-            if hasattr(ops, init_on_attach):
-                if ops.init_on_attach == True:
-                    self.OperatorInstances[ops] = op()
 
         else:
             raise TypeError("'{}' is not of type '{}'".format(ops, twitchtools.utils.Operator))
