@@ -28,6 +28,8 @@ class IRC(object):
         self.link = socket.socket();
         self.term = twitchtools.utils.Printer("IRC.{}".format(USER.name))
 
+        self.whisper_link = socket.socket()
+
         if IRC:
             self.server(AP)
 
@@ -137,6 +139,10 @@ class IRC(object):
     def pm(self, CHANNELOBJ, message):
 
         self.raw("PRIVMSG #{} :{}".format(CHANNELOBJ.name, message))
+
+    def whisper(self, user, message):
+        #self.term("Whispering...", "PRIVMSG #jtv :/w {user} {message}".format(user=user.name, message=message))
+        self.raw("PRIVMSG #jtv :/w {user} {message}".format(user=user.name, message=message))
 
     def read(self, output = True, amount = 256, timeout = 0.5):
         stimeout = self.link.gettimeout()

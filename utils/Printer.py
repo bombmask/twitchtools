@@ -36,7 +36,13 @@ class Printer(object):
 
     def write(self, args, kwargs):
         if Printer.ON or True:
-            print(codecs.encode(self.format(args, kwargs), "UTF-8", "replace"))
+            s = self.format(args, kwargs)
+            if isinstance(s, bytes):
+                print(codecs.decode(s, 'UTF-8', "replace"))
+            elif isinstance(s, str):
+                print(s)
+            else:
+                print(codecs.encode(s, "UTF-8", "replace"))
 
 
     @property

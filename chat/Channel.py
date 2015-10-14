@@ -11,6 +11,9 @@ from .User import User
 import twitchtools.login
 import twitchtools.utils
 
+import traceback
+import sys
+
 class Channel(object):
     """
     Channel(IRCobject, name)
@@ -40,12 +43,23 @@ class Channel(object):
             self.users[message.user].addMessage(message)
             self.term("Creating User:", message.user)
 
-        #self.term(self.Operators+Channel.Operators)
+        #self.term(self.Operators+Channel.Operators,self.OperatorInstances)
+
         for op in self.Operators + self.ircParent.Operators:
+            if op not in self.OperatorInstances and op.init_on_attach:
+                self.term("Attaching Operator", op)
+                self.OperatorInstances[op] = op()
+
             if op.poll(self, message):
                 try:
+                    #self.term(op)
                     self.OperatorInstances[op].execute(self, message)
                 except KeyError as e:
+
+                    print ('-'*60)
+                    traceback.print_exc(file=sys.stdout)
+                    print ('-'*60)
+
                     self.OperatorInstances[op] = op()
                     self.OperatorInstances[op].execute(self, message)
 
@@ -69,3 +83,6 @@ class Channel(object):
 
     def pm(self, *message_parts):
         self.ircParent.pm(self, " ".join([codecs.decode(part) if isinstance(part, bytes) else part for part in message_parts]))
+
+    def whisper(self, user, *message_parts):
+        self.ircParent.whisper(user, " ".join([codecs.decode(part) if isinstance(part, bytes) else part for part in message_parts]))

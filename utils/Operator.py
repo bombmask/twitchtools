@@ -1,4 +1,5 @@
 class Operator(object):
+    init_on_attach = False
 
     def __init__(self):
         #super(self).__init__(self)
