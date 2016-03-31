@@ -1,7 +1,12 @@
 from .TObjectCore import TObjectCore
+from .WorldContext import WCTX 
 
 class Engine(TObjectCore):
-	
+	def AddWorldCTX(self, WCTXObject):
+		self.CTX = WCTXObject
+		
+		return
+
 	def Initalize(self):
 		pass
 
@@ -56,13 +61,13 @@ class Engine(TObjectCore):
 	###########################
 	def Watchman(self):
 		def IsAsync(self):
-			return true
+			return True
 
 		pass
 
 	def FBL(self):
 		def IsAsync(self):
-			return true
+			return True
 		pass
 
 	###################################
@@ -82,20 +87,26 @@ class Engine(TObjectCore):
 		pass
 
 
+def CreateWCTX(CTXObjectRoot = WCTX, *args, **kwargs):
+	CreateWCTX.CTX = CTXObjectRoot(*args, **kwargs)
+	return GetCurrentWCTX()
+
+def GetCurrentWCTX():
+	return CreateWCTX.CTX
 
 def StartEngine():
 	StartupTwitchToolsEngineRuntimeWithModules()
 
-
 def IsEngineValid(Engine):
 	#@TODO: Implement this
-	return true
+	return True
 
 # A Get Current Engine Macro
 def GetEngine():
 	# Do some checking to make sure engine is valid
 	return StartupTwitchToolsEngineRuntimeWithModules.PrivateEngineObjectRoot
 
+# Sparkplug
 def StartupTwitchToolsEngineRuntimeWithModules():
 	StartupTwitchToolsEngineRuntimeWithModules.PrivateEngineObjectRoot = Engine()
 
@@ -113,17 +124,19 @@ def StartupTwitchToolsEngineRuntimeWithModules():
 	LoadConfigs(GetEngine())
 	
 	# Create and initalize callback events
-	GetEngine().InitalizeEventSystem()
+	GetEngine().InitalizeEventSubsystem()
 
 	# Create Object Factory
 	GetEngine().InitalizeObjectFactory()
+	
+	# Setup Async pool
+	GetEngine().InitalizeAsyncSubsystem()
 
+	GetEngine().AddWorldCTX(GetCurrentWCTX())
 	# Begin main boot cycle after initalizing modules
 	# callback events are initalized. Begin procedures
 	GetEngine().Initalize()
 
-	# Setup Async pool
-	GetEngine().InitalizeAsyncSubsystem()
 
 	# Mainloop. Block till finished or any cancel event is called
 	# @TODO: Config setting to attach engine to async task and return and not block

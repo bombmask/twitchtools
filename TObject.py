@@ -1,4 +1,4 @@
-from TObjectBase import TObjectBase
+from .TObjectBase import TObjectBase
 
 
 class TObject(TObjectBase):
