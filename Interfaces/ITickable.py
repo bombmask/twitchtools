@@ -1,4 +1,4 @@
-from ..IInterface include IInterface
+from ..IInterface import IInterface
 
 class ITickable(IInterface):
 	def Tick(self, dt):

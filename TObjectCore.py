@@ -7,7 +7,7 @@
 # I = Interfaces for classes # Interfaces contain no implementation unless explicitly needed.
 # S = Data Structures: JUST for passing around data. No Functions
 # E = Event responders
-# A = Async classes
+# A = Async classes and Events
 # U = Utility classes
 # X = Factories
 # E = Enumerators

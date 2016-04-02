@@ -1,4 +1,4 @@
-from ..IInterface include IInterface
+from ..IInterface import IInterface
 
 class IAutomatable(IInterface):
 	pass
