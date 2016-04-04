@@ -9,8 +9,12 @@ class RemakeList(type):
 		cls.delagates = list()
 		super(RemakeList, cls).__init__(name, bases, clsdict)
 
+# Global Event Interface
+
 class IEventable(with_metaclass(RemakeList, IInterface)):
-	# __metaclass__ = RemakeList
+	# __metaclass__ = RemakeList 
+	#PY2 Only
+
 
 	bAsyncCallback = False
 	bAsyncDispatch = False
@@ -18,10 +22,10 @@ class IEventable(with_metaclass(RemakeList, IInterface)):
 	delagates = []
 
 	@classmethod
-	def Dispatch(cls):
+	def Dispatch(cls, *args, **kwargs):
 		for delagate in cls.delagates:
 			# print(delagate)
-			delagate.Execute()
+			delagate.Execute(*args, **kwargs)
 
 		#NotImplementedError("This function is required to be implemented")
 		# Creating Global Event
@@ -29,11 +33,10 @@ class IEventable(with_metaclass(RemakeList, IInterface)):
 	@classmethod
 	def IsAsync(cls):
 		return cls.bAsyncDispatch
-		NotImplementedError("This function is required to be implemented")
+		# NotImplementedError("This function is required to be implemented")
 
 	@classmethod
 	def Bind(cls, Delagate):
-
 		# print("binding delagate: {}:{} == {}".format(Delagate, IExecutable, issubclass(Delagate, IExecutable)))
 		#NotImplementedError("This function is required to be implemented")
 		if issubclass(Delagate, IExecutable):

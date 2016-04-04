@@ -1,4 +1,9 @@
 from ..Interfaces.IEventable import IEventable
 
-class APostInitalize(IEventable):
+class AOnStartup(IEventable):
 	pass
+
+
+
+
+	

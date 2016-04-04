@@ -1,4 +1,7 @@
 __all__ = [
 	"APostInitalize",
-	"AShutdown"
+	"AShutdown",
+	"AStartup",
+	"AJoinChannel",
+	"AMessage"
 ]

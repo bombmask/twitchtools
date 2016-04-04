@@ -1,6 +1,7 @@
 from .TObjectCore import TObjectCore
 from .WorldContext import WCTX 
 from .Events import *
+from .Util import *
 # from .Events.APostInitalize import APostInitalize
 
 from time import sleep
@@ -16,7 +17,8 @@ class Engine(TObjectCore):
 
 	def Initalize(self):
 		self.CTX.RunInstructions(self)
-
+		self.commands = FLookupDispatch.FLookupDispatch()
+		
 		self.PostInitalize()
 
 	def PostInitalize(self):
@@ -44,6 +46,7 @@ class Engine(TObjectCore):
 		self.DetachEventThread()
 
 	def Shutdown(self):
+		AShutdown.AShutdownSubmodules.Dispatch()
 		self.CleanupTickThread()
 		self.CleanupEventThread()
 		self.CleanupUnusedResources()
@@ -52,15 +55,25 @@ class Engine(TObjectCore):
 
 	###############################
 	## Threaded Async Submodules ##
-	#@TODO
+	###############################
+	
+	####
+	# @TODO
 	# Colapse into seprate classes
 	# Convert event function to event
 	# manager. 
 	#
 	# Convert tick to tick manager
 	# with "smart" resources
-	###############################
+	#
+	# Avoid 100% cpu usage, apply
+	# cpu stall in some way for
+	# consistant "Frame rate"
+	####
 
+	##
+	# Tick Thread Stuff / Ticking loop. 
+	##
 	def DetachTickThread(self):
 		#Detach the tick thread you dummy
 		# This is something that is runnning a loop. 
@@ -80,6 +93,9 @@ class Engine(TObjectCore):
 		while self.bTickThreadRuntimeKeepTicking:
 			pass
 			# print("Hello Ticking World!")
+	##
+	# Event Thread Stuff / Scheduler 
+	##
 
 	def DetachEventThread(self):
 		#Detach the Event thread please
