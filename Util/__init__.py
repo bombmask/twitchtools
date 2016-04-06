@@ -1,3 +1,4 @@
 __all__ = [
-	"FLookupDispatch"
+	"FLookupDispatch",
+	"FEvent"
 ]

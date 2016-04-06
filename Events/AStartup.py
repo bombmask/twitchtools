@@ -1,6 +1,6 @@
 from ..Interfaces.IEventable import IEventable
 
-class AOnStartup(IEventable):
+class AStartup(IEventable):
 	pass
 
 

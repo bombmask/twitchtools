@@ -1,30 +1,19 @@
-# from future.utils import with_metaclass
-from six import with_metaclass
 import types
+from ..Interfaces.IEventable import IEventable
 
-from ..IInterface import IInterface
-from ..Interfaces.IExecutable import IExecutable
-
-class RemakeList(type):
-	def __init__(cls, name, bases, clsdict):
-		cls.delagates = list()
-		super(RemakeList, cls).__init__(name, bases, clsdict)
-
-# Global Event Interface
-
-class IEventable(with_metaclass(RemakeList, IInterface)):
-	# __metaclass__ = RemakeList 
-	#PY2 Only
-
+class FEvent(IEventable):
 
 	bAsyncCallback = False
 	bAsyncDispatch = False
 	
 	delagates = []
 
-	@classmethod
-	def Dispatch(cls, *args, **kwargs):
-		for delagate in cls.delagates:
+	def __init__(self):
+		self.delagates = list()
+
+	
+	def Dispatch(self, *args, **kwargs):
+		for delagate in self.delagates:
 			# print(delagate)
 			if isinstance(delagate, types.FunctionType):
 				delagate(*args, **kwargs)
@@ -33,29 +22,25 @@ class IEventable(with_metaclass(RemakeList, IInterface)):
 
 		#NotImplementedError("This function is required to be implemented")
 		# Creating Global Event
-
-	@classmethod
-	def IsAsync(cls):
-		return cls.bAsyncDispatch
+	
+	def IsAsync(self):
+		return self.bAsyncDispatch
 		# NotImplementedError("This function is required to be implemented")
 
-	@classmethod
-	def Bind(cls, Delagate):
+	def Bind(self, Delagate):
 		# print("binding delagate: {}:{} == {}".format(Delagate, IExecutable, issubclass(Delagate, IExecutable)))
 		#NotImplementedError("This function is required to be implemented")
 		if isinstance(Delagate, types.FunctionType):
-			cls.delagates.append(Delagate)
+			self.delagates.append(Delagate)
 			# Assume it's a class, Test subclass
 		try:
 			if issubclass(Delagate, IExecutable):
-				cls.delagates.append(Delagate)
+				self.delagates.append(Delagate)
 		except:
 			pass
 
 		try:
 			if isinstance(Delagate, IExecutable):
-				cls.delagates.append(Delagate)
+				self.delagates.append(Delagate)
 		except:
 			pass
-
-
