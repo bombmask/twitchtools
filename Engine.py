@@ -8,8 +8,18 @@ from time import sleep
 from threading import Thread
 import multiprocessing
 
+try:
+	from Queue import Queue
+except ImportError:
+	from queue import Queue
+
 
 class Engine(TObjectCore):
+	def __init__(self):
+		self.commands = FLookupDispatch.FLookupDispatch()
+		self.EngineQueue = Queue()
+		self.EngineHardStopBool = True
+
 	def AddWorldCTX(self, WCTXObject):
 		self.CTX = WCTXObject
 		
@@ -17,8 +27,7 @@ class Engine(TObjectCore):
 
 	def Initalize(self):
 		self.CTX.RunInstructions(self)
-		self.commands = FLookupDispatch.FLookupDispatch()
-		
+
 		self.PostInitalize()
 
 	def PostInitalize(self):
@@ -30,10 +39,24 @@ class Engine(TObjectCore):
 
 	def Start(self):
 		print("Started Engine")
+		AStartup.AStartup.Dispatch(engine=self)
+		# Submit things to tick thread
+		# Block with Queue
+		while self.EngineHardStopBool:
+			param = self.EngineQueue.get()
+			# Do Stuff
+			print(param)
+
+
+			# Make Escape sequence
+			if param == False:
+				# Double Ensure
+				self.EngineHardStopBool = False
+				break
+
 
 		self.Shutdown()
 		print("Shutdown Engine")
-		pass
 
 	def InitalizeEventSubsystem(self):
 		pass
@@ -89,10 +112,30 @@ class Engine(TObjectCore):
 		self.TickThreadHandle.join()
 
 	def TickThreadRuntime(self):
+		self.TickEvent = FEvent.FEvent()
+		InternalThreads = []
+
+		self.TickEvent.Bind(lambda *args, **kwargs: sleep(0.01))
+
+		totalTicks = 0
 		self.bTickThreadRuntimeKeepTicking = True
 		while self.bTickThreadRuntimeKeepTicking:
-			pass
+			if totalTicks % 100 == 0:
+				pass #print("\rTickThread: {} Ticks Processed ".format(totalTicks))
+
+			# Escape Route
+			if totalTicks > 500 and totalTicks < 510:
+				self.EngineQueue.put(False)
+
+
+			self.TickEvent.Dispatch() # Sleep Functions can go here
+			# At End
+			totalTicks += 1
 			# print("Hello Ticking World!")
+
+		for t in InternalThreads:
+
+			t.Join()
 	##
 	# Event Thread Stuff / Scheduler 
 	##

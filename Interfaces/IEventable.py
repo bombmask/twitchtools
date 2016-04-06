@@ -26,8 +26,11 @@ class IEventable(with_metaclass(RemakeList, IInterface)):
 	def Dispatch(cls, *args, **kwargs):
 		for delagate in cls.delagates:
 			# print(delagate)
-			if isinstance(delagate, types.FunctionType):
-				delagate(*args, **kwargs)
+			if isinstance(delagate, (types.FunctionType, types.MethodType)):
+				try:
+					delagate(*args, **kwargs)
+				except:
+					delagate()
 			else:
 				delagate.Execute(*args, **kwargs)
 
@@ -43,19 +46,23 @@ class IEventable(with_metaclass(RemakeList, IInterface)):
 	def Bind(cls, Delagate):
 		# print("binding delagate: {}:{} == {}".format(Delagate, IExecutable, issubclass(Delagate, IExecutable)))
 		#NotImplementedError("This function is required to be implemented")
-		if isinstance(Delagate, types.FunctionType):
+		if isinstance(Delagate, (types.FunctionType, types.MethodType)):
 			cls.delagates.append(Delagate)
+			return True
 			# Assume it's a class, Test subclass
 		try:
 			if issubclass(Delagate, IExecutable):
 				cls.delagates.append(Delagate)
+				return True
 		except:
-			pass
+			print("Delagate {} failed to pass subclass test in {}".format(Delagate, cls))
 
 		try:
 			if isinstance(Delagate, IExecutable):
 				cls.delagates.append(Delagate)
+				return True
 		except:
-			pass
+			print("Delagate {} failed to pass instance test in {}".format(Delagate, cls))
 
+		return False
 

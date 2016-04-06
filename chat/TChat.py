@@ -1,4 +1,5 @@
 import socket 
+import six
 
 from ..TObject import TObject
 from .IChat import IChat
@@ -13,11 +14,14 @@ def RespondToPing(*args, **kwargs):
 
 class TChat(TObject, IChat):
 	def __init__(self, Server):
+		self.ForceEnd = False
 		self.server = Server
 		self.conn = socket.socket()
+
 		self.FOnStartup = FEvent.FEvent()
 		self.FOnMessageRecv = FEvent.FEvent()
 		self.FOnMessageSent = FEvent.FEvent()
+		self.FOnLineRecv = FEvent.FEvent()
 
 		AStartup.AStartup.Bind(self.Start)
 		AShutdown.AShutdown.Bind(self.Stop)
@@ -25,12 +29,19 @@ class TChat(TObject, IChat):
 		self.FOnMessageRecv.Bind(RespondToPing)
 
 
+
+
 	def Start(self):
+		print("Connecting to {}".format(self.server))
+
 		self.conn.connect(self.server)
 
-		self.FOnStartup.Dispatch()
+		self.FOnStartup.Dispatch(object=self)
 
-		# Spin up message thread 
+		# Spin up message thread
+		#TEMP
+		for i in self.ReadByLines(amount=30):
+			pass
 		
 
 	def Stop(self):
@@ -54,7 +65,7 @@ class TChat(TObject, IChat):
 			# sleeping between joins and 
 			# being able to manipulate the strings
 			# as well as providing a callback for joins
-			self.SendRaw("JOIN #{}".format())
+			self.SendRaw("JOIN #{}".format(channel))
 
 			AJoinChannel.AJoinChannel.Dispatch(context=context)
 
@@ -90,8 +101,13 @@ class TChat(TObject, IChat):
 		# Send message to server and append \r\n
 		AMessage.APreMessageSent.Dispatch(context=context)
 		
-		message = (self.FOnMessageSent.Dispatch(context=context, message=message))
-		self.conn.sendall(bytes(message + "\r\n", "UTF-8"))
+		(self.FOnMessageSent.Dispatch(context=context, message=message))
+		if six.PY3:
+			self.conn.sendall(bytes(message + "\r\n", "UTF-8"))
+
+		else:
+			self.conn.sendall(message + "\r\n")
+
 		AMessage.AMessageSent.Dispatch(context=context)
 
 		AMessage.APostMessageSent.Dispatch(context=context)
@@ -115,6 +131,11 @@ class TChat(TObject, IChat):
 		return message
 
 	def ReadByLines(self, *args, **kwargs):
+		context = {
+			"object":self,
+			"message":""
+		}
+
 		idx = 0
 		whileTest = (lambda x: True if kwargs.get("amount", -1) == -1 else lambda x : x < kwargs.get("amount"))
 		# textBuffer = ""
@@ -122,10 +143,19 @@ class TChat(TObject, IChat):
 		# 	tmpBuffer = 
 		# 	# End
 		# 	idx += 1
-		socketfile = self.conn.makefile(newline="\r\n", encoding="UTF-8", errors="replace")
+		if six.PY3:
+			socketfile = self.conn.makefile(newline="\r\n", encoding="UTF-8", errors="replace")
+		else:
+			socketfile = self.conn.makefile()
 
-		while whileTest(idx):
-			yield socketfile.readline()
+		while whileTest(idx) and not self.ForceEnd:
+			
+			m = socketfile.readline()
+			m = m.strip()
+			context["message"] = m
+			self.FOnLineRecv.Dispatch(**context)
+			
+			yield m
 
 	def RequestTag(self, tag):
 
