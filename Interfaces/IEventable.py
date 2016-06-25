@@ -1,6 +1,7 @@
 # from future.utils import with_metaclass
 from six import with_metaclass
 import types
+import sys
 
 from ..IInterface import IInterface
 from ..Interfaces.IExecutable import IExecutable
@@ -28,11 +29,22 @@ class IEventable(with_metaclass(RemakeList, IInterface)):
 			# print(delagate)
 			if isinstance(delagate, (types.FunctionType, types.MethodType)):
 				try:
-					delagate(*args, **kwargs)
-				except:
-					delagate()
+					try:
+						delagate(*args, **kwargs)
+					except TypeError:
+						print("TYPE ERROR?!?!")
+						delagate()
+				except Exception as e:
+					print("Delagate Failed {} @ {}".format(delagate, e))
+
+					
 			else:
-				delagate.Execute(*args, **kwargs)
+				try:
+					delagate.Execute(*args, **kwargs)
+				except Exception as e:
+					print("Delagate Failed {} @ {}".format(delagate, e))
+
+					
 
 		#NotImplementedError("This function is required to be implemented")
 		# Creating Global Event

@@ -26,4 +26,8 @@ class TObjectCore(object):
 
 #@TODO
 """
+Integrate TChat into engine calls. 
+Bind Start to threading function with 
+async callbacks and continue with main loop. 
+Bind Engine Stop to TChat and allow TChat to shutdown self and Engine
 """

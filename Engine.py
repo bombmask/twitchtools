@@ -61,8 +61,6 @@ class Engine(TObjectCore):
 	def InitalizeEventSubsystem(self):
 		pass
 
-	def InitalizeObjectFactory(self):
-		self.CreateObjectSubfactoryInitalizer()
 
 	def InitalizeAsyncSubsystem(self):
 		self.DetachTickThread()
@@ -153,15 +151,6 @@ class Engine(TObjectCore):
 	def EventThreadRuntime(self):
 		pass
 
-	#######################
-	## Object Subfactory ##
-	#######################
-
-	def CreateObjectSubfactoryInitalizer(self):
-		pass
-
-	def NewObject(self, cls):
-		pass
 
 	###########################
 	## Internal Engine Loops ##
@@ -231,8 +220,7 @@ def StartupTwitchToolsEngineRuntimeWithModules():
 	# Create and initalize callback events
 	GetEngine().InitalizeEventSubsystem()
 
-	# Create Object Factory
-	GetEngine().InitalizeObjectFactory()
+
 	
 	# Setup Async pool
 	GetEngine().InitalizeAsyncSubsystem()

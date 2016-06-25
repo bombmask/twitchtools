@@ -22,4 +22,5 @@ class FLookupDispatchLower(FLookupDispatch):
 
 	def Exec(self, Key, *args, **kwargs):
 		return super(FLookupDispatchLower, self).Exec(Key.lower(), *args, **kwargs)
-		
+
+

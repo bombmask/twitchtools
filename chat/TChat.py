@@ -7,9 +7,11 @@ from ..Events import *
 from ..Util import *
 
 def RespondToPing(*args, **kwargs):
-	if kwargs.get("message", False):
-		if kwargs["message"].startswith("PING"):
-			kwargs.get("object").SendRaw(kwargs["message"].replace("PING", "PONG").strip())
+	if kwargs.get("context", False):
+		if kwargs["context"]["message"].startswith("PING"):
+			# print(kwargs["context"]["message"])
+			kwargs["context"]["object"].SendRaw(kwargs["context"]["message"].replace("PING", "PONG").strip())
+
 
 
 class TChat(TObject, IChat):
@@ -27,6 +29,7 @@ class TChat(TObject, IChat):
 		AShutdown.AShutdown.Bind(self.Stop)
 
 		self.FOnMessageRecv.Bind(RespondToPing)
+		self.FOnLineRecv.Bind(RespondToPing)
 
 
 
@@ -36,11 +39,11 @@ class TChat(TObject, IChat):
 
 		self.conn.connect(self.server)
 
-		self.FOnStartup.Dispatch(object=self)
+		self.FOnStartup.Dispatch(context={"object":self})
 
 		# Spin up message thread
 		#TEMP
-		for i in self.ReadByLines(amount=30):
+		for i in self.ReadByLines():
 			pass
 		
 
@@ -101,7 +104,7 @@ class TChat(TObject, IChat):
 		# Send message to server and append \r\n
 		AMessage.APreMessageSent.Dispatch(context=context)
 		
-		(self.FOnMessageSent.Dispatch(context=context, message=message))
+		self.FOnMessageSent.Dispatch(context=context, message=message)
 		if six.PY3:
 			self.conn.sendall(bytes(message + "\r\n", "UTF-8"))
 
@@ -153,9 +156,12 @@ class TChat(TObject, IChat):
 			m = socketfile.readline()
 			m = m.strip()
 			context["message"] = m
-			self.FOnLineRecv.Dispatch(**context)
+			AMessage.APreMessageRecieved.Dispatch(context=context)
+			self.FOnLineRecv.Dispatch(context=context)
 			
 			yield m
+			
+			idx += 1
 
 	def RequestTag(self, tag):
 

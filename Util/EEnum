@@ -1,0 +1,4 @@
+class Enum(object):
+	@classmethod
+	def fromString(cls, item):
+		return cls.__dict__.get(item, False)
